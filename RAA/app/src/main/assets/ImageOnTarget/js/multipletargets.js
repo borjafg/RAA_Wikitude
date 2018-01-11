@@ -54,21 +54,20 @@ var World = {
 
 	removeLoadingBar: function() {
 		if (!World.loaded) {
-			var e = document.getElementById('loadingMessage');
-			e.parentElement.removeChild(e);
-			World.loaded = true;
 		}
 	},
 
 	worldLoaded: function worldLoadedFn() {
-		var cssDivInstructions = " style='display: table-cell;vertical-align: middle; text-align: right; width: 50%; padding-right: 15px;'";
-		var cssDivSurfer = " style='display: table-cell;vertical-align: middle; text-align: left; padding-right: 15px; width: 38px'";
-		var cssDivBiker = " style='display: table-cell;vertical-align: middle; text-align: left; padding-right: 15px;'";
-		document.getElementById('loadingMessage').innerHTML =
-			"<div" + cssDivInstructions + ">Scan Target &#35;1 (surfer) or &#35;2 (biker):</div>" +
-			"<div" + cssDivSurfer + "><img src='assets/surfer.png'></img></div>" +
-			"<div" + cssDivBiker + "><img src='assets/bike.png'></img></div>";
+		document.getElementById('loadingMessage').innerHTML ="<a> latitud: " + World.lat+ " / </a>"+"<a> longitud: " + World.lon+ " / </a>"+"<a> altitud: " + World.alt+ "  </a>";
+
 	}
 };
 
-World.init();
+
+
+AR.context.onLocationChanged = function(latitude, longitude, altitude, accuracy){
+	World.lat=latitude;
+	World.lon=longitude;
+	World.alt=altitude
+	World.init();
+}
