@@ -1,0 +1,34 @@
+{
+	"hoteles":{
+		"hotel"{
+			"nombre": "",
+		
+			"latitud":"", 
+			"longitud": "",
+			"altura": "",
+			
+			"imageURL":"",
+			"descripcion":""
+		},
+		"hotel"{
+			"nombre": "",
+		
+			"latitud":"", 
+			"longitud": "",
+			"altura": "",
+			
+			"imageURL":"",
+			"descripcion":""
+		},
+		"hotel"{
+			"nombre": "",
+		
+			"latitud":"", 
+			"longitud": "",
+			"altura": "",
+			
+			"imageURL":"",
+			"descripcion":""
+		}	
+	}
+}

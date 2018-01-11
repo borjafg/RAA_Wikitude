@@ -14,7 +14,7 @@ var World = {
 
 			Adding multiple targets to a target collection is straightforward. Simply follow our Target Management Tool documentation. Each target in the target collection is identified by its target name. By using this target name, it is possible to create an AR.ImageTrackable for every target in the target collection.
 		*/
-		this.targetCollectionResource = new AR.TargetCollectionResource("assets/solar.wtc", {
+		this.targetCollectionResource = new AR.TargetCollectionResource("assets/raa.wtc", {
 		});
 
 		this.tracker = new AR.ImageTracker(this.targetCollectionResource, {
@@ -27,22 +27,29 @@ var World = {
 		/*
 			The next step is to create the augmentation. In this example an image resource is created and passed to the AR.ImageDrawable. A drawable is a visual component that can be connected to an IR target (AR.ImageTrackable) or a geolocated object (AR.GeoObject). The AR.ImageDrawable is initialized by the image and its size. Optional parameters allow for position it relative to the recognized target.
 		*/
-
-		var modelEarth = new AR.Model("assets/earth.wt3", {
-			onLoaded: this.worldLoaded,
-			scale: {
-				x: 0.2,
-				y: 0.2,
-				z: 0.2
-			},
-			onClick : function() {
-				location.href = "https://www.google.es/intl/es/earth/index.html"; 
-		    }
+		var imageRestaurant = new AR.ImageResource("assets/imageRestauran.png");
+		
+		var restaurantButton = new AR.ImageDrawable(imageRestaurant, 0.5, {
+			  offsetX : 0.4,
+			  rotation : 0,
+			  onClick : function() {
+				  searchNearestRestauran(World.lat,World.lon,World.alt);
+			}
 		});
 		
-		var page = new AR.ImageTrackable(this.tracker, "solarsystem", {
+		var imageHotel = new AR.ImageResource("assets/imageHotel.png");
+		
+		var hotelButton = new AR.ImageDrawable(imageHotel, 0.5, {
+			  offsetX : -0.35,
+			  rotation : 0,
+			  onClick : function() {
+				  searchNearestHotel(World.lat,World.lon,World.alt);
+			}
+		});
+		
+		var page = new AR.ImageTrackable(this.tracker, "tripadvisor", {
 			drawables: {
-				cam: [modelEarth]
+				cam: [restaurantButton,hotelButton]
 			},
 			onImageRecognized: this.removeLoadingBar,
             onError: function(errorMessage) {
@@ -54,6 +61,7 @@ var World = {
 
 	removeLoadingBar: function() {
 		if (!World.loaded) {
+			document.getElementById('loadingMessage').parentElement.removeChild();
 		}
 	},
 
@@ -71,3 +79,12 @@ AR.context.onLocationChanged = function(latitude, longitude, altitude, accuracy)
 	World.alt=altitude
 	World.init();
 }
+
+function  searchNearestRestauran(latitude, longitude, altitude){
+	
+}
+
+function  searchNearestHotel(latitude, longitude, altitude){
+	
+}
+

@@ -1,0 +1,34 @@
+{
+	"restaurantes":{
+		"restaurante"{
+			"nombre": "",
+		
+			"latitud":"", 
+			"longitud": "",
+			"altura": "",
+			
+			"imageURL":"",
+			"descripcion":""
+		},
+		"restaurante"{
+			"nombre": "",
+		
+			"latitud":"", 
+			"longitud": "",
+			"altura": "",
+			
+			"imageURL":"",
+			"descripcion":""
+		},
+		"restaurante"{
+			"nombre": "",
+		
+			"latitud":"", 
+			"longitud": "",
+			"altura": "",
+			
+			"imageURL":"",
+			"descripcion":""
+		}	
+	}
+}
