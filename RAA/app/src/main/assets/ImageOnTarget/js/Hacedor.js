@@ -2,7 +2,7 @@ var World = {
 	loaded: false,
 	
 	init: function initFn() {
-		//this.restaurantes = {};
+		this.restaurantes = {};
 		this.hoteles ={};
 		this.createOverlays();
 	},
@@ -29,8 +29,7 @@ var World = {
 			  offsetX : 0.4,
 			  rotation : 0,
 			  onClick : function() {
-				 
-				  this.searchNearestRestaurant();
+				  World.searchNearestRestaurant();
 			}
 		});
 		
@@ -40,7 +39,8 @@ var World = {
 			  offsetX : -0.35,
 			  rotation : 0,
 			  onClick : function() {
-				  this.searchNearestHotel();
+
+				  World.searchNearestHotel();
 			}
 		});
 		
@@ -58,6 +58,7 @@ var World = {
 
 	removeLoadingBar: function() {
 		if (!World.loaded) {
+			generateThings(World.lat,World.lon,	World.alt);
 			document.getElementById('loadingMessage').innerHTML ="";
 		}
 	},
@@ -68,30 +69,37 @@ var World = {
 	},
 	searchNearestRestaurant: function  searchNearestRestaurant(){
 		var nearest=0;
-		var diff=Number.POSITIVE_INFINITY;;
+		var diff=Number.POSITIVE_INFINITY;
 		for (i=0;i<5;i++){
 			var lon=World.restaurantes[i].longitude;
 			var lat=World.restaurantes[i].latitude;
 			var diferencia=calculateDistance(World.lat,lat,World.lon,lon);
-			if(diferencia<diff) nearest=i;
+			if(diferencia<diff){ 
+				nearest=i;
+				diff=diferencia;
+			}
 		}
-		doTheRestaurantThing(World.restaurantes[nearest]);
+		doTheRestaurantThing(nearest,diff);
 		
 	},
 
 	searchNearestHotel: function  searchNearestHotel(){
 		
 		var nearest=0;
-		var diff=Number.POSITIVE_INFINITY;;
+		
+		var diff=Number.POSITIVE_INFINITY;
+		
 		for (i=0;i<5;i++){
-			
 			var lon=World.hoteles[i].longitude;
 			var lat=World.hoteles[i].latitude;
 			var diferencia=calculateDistance(World.lat,lat,World.lon,lon);
-			if(diferencia<diff) nearest=i;
+			if(diferencia<diff){ 
+				nearest=i;
+				diff=diferencia;
+			}
 		}
-		doTheHotelThing(World.hoteles[nearest]);
-	}
+		doTheHotelThing(nearest,diff);
+	},
 
 };
 
@@ -99,17 +107,17 @@ var World = {
 AR.context.onLocationChanged = function(latitude, longitude, altitude, accuracy){
 	World.lat=latitude;
 	World.lon=longitude;
-	World.alt=altitude
+	World.alt=altitude;
 	World.init();
-	generateThings(longitude,latitude,altitude);
+	
 }
 
 //Genera aleatoriamente los lugares 	*-Problemas al utilizar jsons, esta fue mi unica salida :(
 function generateThings(lon,lat,alt){
 	
+	var name="";
 	for (i=0;i<5;i++){
-		var name = generateName();
-		
+		name = generateName();
 		var hotel=[];
 		hotel.nombre="hotel "+name;
         hotel.longitude= (lon + (Math.random() / 5 - 0.1));
@@ -117,16 +125,16 @@ function generateThings(lon,lat,alt){
         hotel.altitude= alt;
 		World.hoteles[i]=hotel;
 	}
-	i=0;
+	
 	for (i=0;i<5;i++){
-		var name = generateName();
+		name = generateName();
 		var restaurante=[];
 		restaurante.nombre="restaurante "+name;
-        restaurante.longitude= (lon + (Math.random() / 5 - 0.1));
-        restaurante.latitude= (lat + (Math.random() / 5 - 0.1));
+        restaurante.longitude= (lon + ((Math.random() - 0.5) / 1000));
+        restaurante.latitude= (lat + ((Math.random() - 0.5) / 1000));
         restaurante.altitude= alt;
 		World.restaurantes[i]=restaurante;
-	} 
+	}	
 }
 
 
@@ -144,31 +152,29 @@ function generateName(){
 
 //Calcula la distancia dada la latitud y la longitud
 function calculateDistance(lat1,lat2,lon1,lon2){
-		
 	var R = 6371e3; // radio de la tierra
-	var O1 = lat1.toRadians();
-	var O2 = lat2.toRadians();
-	var AD = (lat2-lat1).toRadians();
-	var AT = (lon2-lon1).toRadians();
+	var O1 = lat1 * Math.PI / 180;
+	var O2 = lat2 * Math.PI / 180;
+	var AD = (lat2-lat1) * Math.PI / 180;
+	var AT = (lon2-lon1) * Math.PI / 180;
 
-	var a = Math.sin(AD/2) * Math.sin(AD/2) +
-			Math.cos(O1) * Math.cos(O2) *
-			Math.sin(AT/2) * Math.sin(AT/2);
+	var a = Math.sin(AD/2) * Math.sin(AD/2) + Math.cos(O1) * Math.cos(O2) *	Math.sin(AT/2) * Math.sin(AT/2);
 	var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
 
 	var d = R * c;
+	return d.toFixed(3);
 }
 
 
 //Mostrar info y flecha que apunte al lugar.
 
-function doTheHotelThing(hotel){
-	document.getElementById('loadingMessage').innerHTML =hotel.nombre;
+function doTheHotelThing(number,distance){
+	document.getElementById('loadingMessage').innerHTML ="<p>"+World.hoteles[number].nombre+"</p>"+"<p> distancia: "+distance+"</p>";
 }
 	
 
-function doTheRestaurantThing(restaurante){
-	document.getElementById('loadingMessage').innerHTML =restaurante.nombre;
+function doTheRestaurantThing(number,distance){
+	document.getElementById('loadingMessage').innerHTML ="<p>"+World.restaurantes[number].nombre+"</p>"+"<p> distancia: "+distance+"</p>";
 }
 
 
