@@ -76,9 +76,10 @@ var World = {
 			drawables: {
 				cam:[hotelButton],
 			   indicator: [imageDrawable]
+			   
 			}
 		});
-		
+		World.obj.enabled =false;
 		document.getElementById('loadingMessage').innerHTML ="<a> latitud: " + World.lat+ " / </a>"+"<a> longitud: " + World.lon+ " / </a>"+"<a> altitud: " + World.alt+ "  </a>";
 
 		this.loaded=true;
@@ -99,18 +100,18 @@ var World = {
 		var nearest=0;
 		var angle=0;
 		var diff=Number.POSITIVE_INFINITY;
+		
 		for (i=0;i<5;i++){
 			var lon=World.restaurantes[i].longitude;
 			var lat=World.restaurantes[i].latitude;
-			var diferencia=calculateDistance(World.lat,lat,World.lon,lon);
+			var diferencia=calculateDistance(lat,lon);
 			if(diferencia<diff){ 
 				nearest=i;
-				angle=getAngle(World.lat,lat,World.lon,lon);
 				diff=diferencia;
 				World.destino=nearest;
 			}
 		}
-		doTheRestaurantThing(nearest,diff,angle);
+		doTheRestaurantThing(nearest,diff);
 		
 	},
 
@@ -123,15 +124,14 @@ var World = {
 		for (i=0;i<5;i++){
 			var lon=World.hoteles[i].longitude;
 			var lat=World.hoteles[i].latitude;
-			var diferencia=calculateDistance(World.lat,lat,World.lon,lon);
+			var diferencia=calculateDistance(lat,lon);
 			if(diferencia<diff){ 
 				nearest=i;
-				angle=getAngle(World.lat,lat,World.lon,lon);
 				diff=diferencia;
 				World.destino=nearest;
 			}
 		}
-		doTheHotelThing(nearest,diff,angle);
+		doTheHotelThing(nearest,diff);
 	},
 	
 	act: function actualizar(){
@@ -145,16 +145,14 @@ var World = {
 		
 		
 		else if(World.seleccion==0){
-			var diff=calculateDistance(World.lat,World.restaurantes[World.seleccion].lat,World.lon,World.restaurantes[World.seleccion].lon);
-			var angle=getAngle(World.lat,World.restaurantes[World.seleccion].lat,World.lon,World.restaurantes[World.seleccion].lon);
+			var diff=calculateDistance(World.restaurantes[World.seleccion].lat,World.restaurantes[World.seleccion].lon);
 
-			doTheRestaurantThing(seleccion,diff,angle);
+			doTheRestaurantThing(seleccion,diff);
 		}
 		else if(World.seleccion==1){
-			var diff=calculateDistance(World.lat,World.hoteles[World.seleccion].lat,World.lon,World.hoteles[World.seleccion].lon);
-			var angle=getAngle(World.lat,World.hoteles[World.seleccion].lat,World.lon,World.hoteles[World.seleccion].lon);
+			var diff=calculateDistance(World.hoteles[World.seleccion].lat,World.hoteles[World.seleccion].lon);
 
-			doTheHotelThing(seleccion,diff,angle);
+			doTheHotelThing(seleccion,diff);
 		}
 		
 		
@@ -172,7 +170,7 @@ AR.context.onLocationChanged = function(latitude, longitude, altitude, accuracy)
 	else{
 		World.act();
 	}
-	generateThings(latitude,longitude,	altitude);
+	generateThings(longitude,latitude,altitude);
 	
 }
 
@@ -184,9 +182,9 @@ function generateThings(lon,lat,alt){
 		name = generateName();
 		var hotel=[];
 		hotel.nombre="hotel "+name;
-        hotel.longitude= lon +( Math.floor(((Math.random() *5)+7)));
-        hotel.latitude= lat + (Math.floor(((Math.random() *5)+7)));
-        hotel.altitude= alt+1;
+        hotel.longitude= (Math.floor(((Math.random())-0.5)*5));
+        hotel.latitude=  (Math.floor(((Math.random())-0.5)*5));
+        hotel.altitude= alt;
 
 		World.hoteles[i]=hotel;
 	}
@@ -195,9 +193,9 @@ function generateThings(lon,lat,alt){
 		name = generateName();
 		var restaurante=[];
 		restaurante.nombre="restaurante "+name;
-        restaurante.longitude= lon +( (((Math.random() *5)+7)));
-        restaurante.latitude= lat +( (((Math.random() *5)+7)));
-        restaurante.altitude= alt+1;
+        restaurante.longitude= (Math.floor(((Math.random())-0.5)*5));
+        restaurante.latitude= (Math.floor(((Math.random())-0.5)*5));
+        restaurante.altitude= alt;
 		World.restaurantes[i]=restaurante;
 	}	
 }
@@ -216,47 +214,35 @@ function generateName(){
 }
 
 //Calcula la distancia dada la latitud y la longitud
-function calculateDistance(lat1,lat2,lon1,lon2){
-	var R = 6371e3; // radio de la tierra
-	var O1 = lat1 * Math.PI / 180;
-	var O2 = lat2 * Math.PI / 180;
-	var AD = (lat2-lat1) * Math.PI / 180;
-	var AT = (lon2-lon1) * Math.PI / 180;
-
-	var a = Math.sin(AD/2) * Math.sin(AD/2) + Math.cos(O1) * Math.cos(O2) *	Math.sin(AT/2) * Math.sin(AT/2);
-	var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-
-	var d = R * c/1000000;
-	return d.toFixed(3);
+function calculateDistance(lat,lon){
+		return lat+lon;
 }
 
-function getAngle(lat1,lat2,lon1,lon2){
-	// angle in degrees
-	var angleDeg = Math.atan2(lat1 - lat2,lon1 - lon2) * 180 / Math.PI;
-	return angleDeg.toFixed(3);
-}
+
 
 
 //Mostrar info y flecha que apunte al lugar.
 
-function doTheHotelThing(number,distance,angle){
+function doTheHotelThing(number,distance){
 	
-	document.getElementById('loadingMessage').innerHTML ="<p>"+World.hoteles[number].latitude+"</p>"+"<p> distancia: "+distance+"</p>";
+	document.getElementById('loadingMessage').innerHTML ="<p>"+World.hoteles[number].nombre+"</p>"+"<p> distancia: "+Math.abs(distance)+"</p>";
 	
-	var geoLoc = new AR.GeoLocation(World.hoteles[number].latitude,World.hoteles[number].longitude, World.hoteles[number].altitude);
-	
-	var location = new AR.RelativeLocation(geoLoc, 0,0,1);
+	//var geoLoc = new AR.GeoLocation(World.hoteles[number].latitude,World.hoteles[number].longitude, World.hoteles[number].altitude);
+	var geoLoc = new AR.GeoLocation(World.lat,World.lon, World.alt);
+	var location = new AR.RelativeLocation(geoLoc,World.hoteles[number].latitude,World.hoteles[number].longitude, 0);
 	
 	World.obj.locations=location;
+	World.obj.enabled =true;
 }
 	
 
-function doTheRestaurantThing(number,distance,angle){
-	document.getElementById('loadingMessage').innerHTML ="<p>"+World.restaurantes[number].latitude+"</p>"+"<p> distancia: "+distance+"</p>";
+function doTheRestaurantThing(number,distance){
+	document.getElementById('loadingMessage').innerHTML ="<p>"+World.restaurantes[number].nombre+"</p>"+"<p> distancia: "+Math.abs(distance)+"m</p>";
 
-	var geoLoc = new AR.GeoLocation(World.restaurantes[number].latitude,World.restaurantes[number].longitude, World.restaurantes[number].altitude);
-	
-	var location = new AR.RelativeLocation(geoLoc, 7,7,0);
+	//var geoLoc = new AR.GeoLocation(World.restaurantes[number].latitude,World.restaurantes[number].longitude, World.restaurantes[number].altitude);
+	var geoLoc = new AR.GeoLocation(World.lat,World.lon, World.alt);
+	var location = new AR.RelativeLocation(geoLoc,World.restaurantes[number].latitude,World.restaurantes[number].longitude, 0);
 	
 	World.obj.locations=location;
+	World.obj.enabled =true;
 }
