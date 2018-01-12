@@ -1,10 +1,14 @@
 var World = {
 	loaded: false,
 	
+	destino:-1,
+	seleccion:-1,
+	
 	init: function initFn() {
 		this.restaurantes = {};
 		this.hoteles ={};
 		this.createOverlays();
+		
 	},
 
 	createOverlays: function createOverlaysFn() {
@@ -29,6 +33,7 @@ var World = {
 			  offsetX : 0.4,
 			  rotation : 0,
 			  onClick : function() {
+				  World.seleccion=0;
 				  World.searchNearestRestaurant();
 			}
 		});
@@ -39,10 +44,11 @@ var World = {
 			  offsetX : -0.35,
 			  rotation : 0,
 			  onClick : function() {
-
+					World.seleccion=1;
 				  World.searchNearestHotel();
 			}
 		});
+		
 		
 		var page = new AR.ImageTrackable(this.tracker, "tripadvisor", {
 			drawables: {
@@ -54,13 +60,35 @@ var World = {
             }
 		});
 		
+		
+		var geoLoc = new AR.GeoLocation(this.lat,this.lon, this.alt);
+		
+		var location = new AR.RelativeLocation(geoLoc, 0,0,0);
+		
+		var flecha = new AR.ImageResource("assets/indi.png");
+		
+		var imageDrawable = new AR.ImageDrawable(flecha, 0.1, {
+		  offsetX : 0,
+		  rotation : 0
+		});
+					
+		World.obj = new AR.GeoObject(location, {
+			drawables: {
+				cam:[hotelButton],
+			   indicator: [imageDrawable]
+			}
+		});
+		
+		document.getElementById('loadingMessage').innerHTML ="<a> latitud: " + World.lat+ " / </a>"+"<a> longitud: " + World.lon+ " / </a>"+"<a> altitud: " + World.alt+ "  </a>";
+
+		this.loaded=true;
+		
+		
 	},
 
 	removeLoadingBar: function() {
-		if (!World.loaded) {
-			generateThings(World.lat,World.lon,	World.alt);
+			
 			document.getElementById('loadingMessage').innerHTML ="";
-		}
 	},
 
 	worldLoaded: function worldLoadedFn() {
@@ -69,6 +97,7 @@ var World = {
 	},
 	searchNearestRestaurant: function  searchNearestRestaurant(){
 		var nearest=0;
+		var angle=0;
 		var diff=Number.POSITIVE_INFINITY;
 		for (i=0;i<5;i++){
 			var lon=World.restaurantes[i].longitude;
@@ -76,17 +105,19 @@ var World = {
 			var diferencia=calculateDistance(World.lat,lat,World.lon,lon);
 			if(diferencia<diff){ 
 				nearest=i;
+				angle=getAngle(World.lat,lat,World.lon,lon);
 				diff=diferencia;
+				World.destino=nearest;
 			}
 		}
-		doTheRestaurantThing(nearest,diff);
+		doTheRestaurantThing(nearest,diff,angle);
 		
 	},
 
 	searchNearestHotel: function  searchNearestHotel(){
 		
 		var nearest=0;
-		
+		var angle=0;
 		var diff=Number.POSITIVE_INFINITY;
 		
 		for (i=0;i<5;i++){
@@ -95,11 +126,39 @@ var World = {
 			var diferencia=calculateDistance(World.lat,lat,World.lon,lon);
 			if(diferencia<diff){ 
 				nearest=i;
+				angle=getAngle(World.lat,lat,World.lon,lon);
 				diff=diferencia;
+				World.destino=nearest;
 			}
 		}
-		doTheHotelThing(nearest,diff);
+		doTheHotelThing(nearest,diff,angle);
 	},
+	
+	act: function actualizar(){
+		if(World.seleccion==-1){
+			var geoLoc = new AR.GeoLocation(this.lat,this.lon, this.alt);
+		
+			var location = new AR.RelativeLocation(geoLoc,0,0,0);
+			
+			World.obj.locations=location;
+		}
+		
+		
+		else if(World.seleccion==0){
+			var diff=calculateDistance(World.lat,World.restaurantes[World.seleccion].lat,World.lon,World.restaurantes[World.seleccion].lon);
+			var angle=getAngle(World.lat,World.restaurantes[World.seleccion].lat,World.lon,World.restaurantes[World.seleccion].lon);
+
+			doTheRestaurantThing(seleccion,diff,angle);
+		}
+		else if(World.seleccion==1){
+			var diff=calculateDistance(World.lat,World.hoteles[World.seleccion].lat,World.lon,World.hoteles[World.seleccion].lon);
+			var angle=getAngle(World.lat,World.hoteles[World.seleccion].lat,World.lon,World.hoteles[World.seleccion].lon);
+
+			doTheHotelThing(seleccion,diff,angle);
+		}
+		
+		
+	}
 
 };
 
@@ -108,7 +167,12 @@ AR.context.onLocationChanged = function(latitude, longitude, altitude, accuracy)
 	World.lat=latitude;
 	World.lon=longitude;
 	World.alt=altitude;
-	World.init();
+	if(!World.loaded)
+		World.init();
+	else{
+		World.act();
+	}
+	generateThings(latitude,longitude,	altitude);
 	
 }
 
@@ -120,9 +184,10 @@ function generateThings(lon,lat,alt){
 		name = generateName();
 		var hotel=[];
 		hotel.nombre="hotel "+name;
-        hotel.longitude= (lon + (Math.random() / 5 - 0.1));
-        hotel.latitude= (lat + (Math.random() / 5 - 0.1));
-        hotel.altitude= alt;
+        hotel.longitude= lon +( Math.floor(((Math.random() *5)+7)));
+        hotel.latitude= lat + (Math.floor(((Math.random() *5)+7)));
+        hotel.altitude= alt+1;
+
 		World.hoteles[i]=hotel;
 	}
 	
@@ -130,9 +195,9 @@ function generateThings(lon,lat,alt){
 		name = generateName();
 		var restaurante=[];
 		restaurante.nombre="restaurante "+name;
-        restaurante.longitude= (lon + ((Math.random() - 0.5) / 1000));
-        restaurante.latitude= (lat + ((Math.random() - 0.5) / 1000));
-        restaurante.altitude= alt;
+        restaurante.longitude= lon +( (((Math.random() *5)+7)));
+        restaurante.latitude= lat +( (((Math.random() *5)+7)));
+        restaurante.altitude= alt+1;
 		World.restaurantes[i]=restaurante;
 	}	
 }
@@ -161,20 +226,37 @@ function calculateDistance(lat1,lat2,lon1,lon2){
 	var a = Math.sin(AD/2) * Math.sin(AD/2) + Math.cos(O1) * Math.cos(O2) *	Math.sin(AT/2) * Math.sin(AT/2);
 	var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
 
-	var d = R * c;
+	var d = R * c/1000000;
 	return d.toFixed(3);
+}
+
+function getAngle(lat1,lat2,lon1,lon2){
+	// angle in degrees
+	var angleDeg = Math.atan2(lat1 - lat2,lon1 - lon2) * 180 / Math.PI;
+	return angleDeg.toFixed(3);
 }
 
 
 //Mostrar info y flecha que apunte al lugar.
 
-function doTheHotelThing(number,distance){
-	document.getElementById('loadingMessage').innerHTML ="<p>"+World.hoteles[number].nombre+"</p>"+"<p> distancia: "+distance+"</p>";
+function doTheHotelThing(number,distance,angle){
+	
+	document.getElementById('loadingMessage').innerHTML ="<p>"+World.hoteles[number].latitude+"</p>"+"<p> distancia: "+distance+"</p>";
+	
+	var geoLoc = new AR.GeoLocation(World.hoteles[number].latitude,World.hoteles[number].longitude, World.hoteles[number].altitude);
+	
+	var location = new AR.RelativeLocation(geoLoc, 0,0,1);
+	
+	World.obj.locations=location;
 }
 	
 
-function doTheRestaurantThing(number,distance){
-	document.getElementById('loadingMessage').innerHTML ="<p>"+World.restaurantes[number].nombre+"</p>"+"<p> distancia: "+distance+"</p>";
+function doTheRestaurantThing(number,distance,angle){
+	document.getElementById('loadingMessage').innerHTML ="<p>"+World.restaurantes[number].latitude+"</p>"+"<p> distancia: "+distance+"</p>";
+
+	var geoLoc = new AR.GeoLocation(World.restaurantes[number].latitude,World.restaurantes[number].longitude, World.restaurantes[number].altitude);
+	
+	var location = new AR.RelativeLocation(geoLoc, 7,7,0);
+	
+	World.obj.locations=location;
 }
-
-
