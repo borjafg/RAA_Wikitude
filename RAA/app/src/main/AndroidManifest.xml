@@ -68,7 +68,6 @@
             </intent-filter>
 
         </activity>
-        <activity android:name=".ArchitectViewActivity"  android:configChanges="screenSize|orientation"/>
     </application>
 
 </manifest>
